@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link Rotator — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080c10;
+      --surface: #0f1418;
+      --border: #1e2830;
+      --accent: #00ff88;
+      --accent2: #00b8ff;
+      --danger: #ff4455;
+      --text: #e8edf2;
+      --muted: #4a5a6a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,136,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      font-size: 11px;
+      font-family: 'Space Mono', monospace;
+      color: var(--accent);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .badge {
+      background: var(--accent);
+      color: #000;
+      font-size: 11px;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* Stats row */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: border-color .2s;
+    }
+
+    .stat:hover { border-color: var(--accent); }
+
+    .stat-label {
+      font-size: 10px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    /* Controls */
+    .controls {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .controls-title {
+      font-size: 12px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"], input[type="url"], select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    input[type="url"] { flex: 1; min-width: 200px; }
+    input[type="text"] { width: 120px; }
+
+    input:focus, select:focus { border-color: var(--accent); }
+    select { cursor: pointer; }
+
+    .btn {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid transparent;
+      padding: 8px;
+    }
+    .btn-danger:hover { background: rgba(255,68,85,.1); }
+
+    /* Links list */
+    .links-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .links-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .link-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: border-color .2s, transform .15s;
+      animation: slideIn .25s ease both;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .link-item:hover { border-color: var(--accent); transform: translateX(2px); }
+
+    .link-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      min-width: 24px;
+      text-align: right;
+    }
+
+    .link-url {
+      flex: 1;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: var(--accent2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .link-alias {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* Mode badge */
+    .mode-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid;
+    }
+    .mode-sequential { border-color: var(--accent); color: var(--accent); }
+    .mode-random { border-color: var(--accent2); color: var(--accent2); }
+
+    /* Export */
+    .export-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .export-title {
+      font-size: 12px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      padding: 16px;
+      border-radius: 8px;
+      resize: vertical;
+      min-height: 240px;
+      outline: none;
+      line-height: 1.7;
+    }
+
+    .copy-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      color: #000;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 12px 20px;
+      border-radius: 10px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all .25s;
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      padding: 40px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="logo">// Link Rotator</div>
+      <h1>Admin <span>Panel</span></h1>
+    </div>
+    <span class="badge">VISUAL EDITOR</span>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Total Links</div>
+      <div class="stat-value" id="count">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Modo Atual</div>
+      <div class="stat-value" id="modeDisplay" style="font-size:16px;padding-top:6px">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Próximo Índice</div>
+      <div class="stat-value" id="nextIdx">—</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="controls-title">// ADICIONAR LINK</div>
+    <div class="row">
+      <input type="url" id="urlInput" placeholder="https://seusite.com" />
+      <input type="text" id="aliasInput" placeholder="Apelido (opcional)" />
+      <button class="btn btn-primary" onclick="addLink()">+ Adicionar</button>
+    </div>
+    <div class="divider"></div>
+    <div class="controls-title">// MODO DE ROTAÇÃO</div>
+    <div class="row" style="align-items:center">
+      <select id="modeSelect" onchange="changeMode()">
+        <option value="sequential">Sequencial (1→2→3…)</option>
+        <option value="random">Aleatório</option>
+      </select>
+      <span id="modeBadge" class="mode-tag mode-sequential">● sequencial</span>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div class="links-header">
+    <h2>Links cadastrados</h2>
+    <button class="btn btn-ghost" onclick="clearAll()">Limpar tudo</button>
+  </div>
+
+  <div class="list" id="list">
+    <div class="empty">Nenhum link ainda. Adicione acima ↑</div>
+  </div>
+
+  <!-- Export -->
+  <div class="export-box">
+    <div class="export-title">// GERAR CÓDIGO — cole no index.html</div>
+    <textarea id="output" readonly></textarea>
+    <div class="copy-row">
+      <button class="btn btn-primary" onclick="copyCode()">Copiar código</button>
+      <button class="btn btn-ghost" onclick="downloadIndex()">Baixar index.html pronto</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // State
+  let links = JSON.parse(localStorage.getItem('rotator_links') || '[]');
+  let mode  = localStorage.getItem('rotator_mode') || 'sequential';
+
+  document.getElementById('modeSelect').value = mode;
+
+  function save() {
+    localStorage.setItem('rotator_links', JSON.stringify(links));
+    localStorage.setItem('rotator_mode', mode);
+    render();
+    updateOutput();
+  }
+
+  function addLink() {
+    const url   = document.getElementById('urlInput').value.trim();
+    const alias = document.getElementById('aliasInput').value.trim();
+    if (!url) return showToast('Digite uma URL!');
+    try { new URL(url); } catch { return showToast('URL inválida!'); }
+    links.push({ url, alias: alias || '' });
+    document.getElementById('urlInput').value = '';
+    document.getElementById('aliasInput').value = '';
+    save();
+    showToast('Link adicionado ✓');
+  }
+
+  function removeLink(i) {
+    links.splice(i, 1);
+    save();
+  }
+
+  function changeMode() {
+    mode = document.getElementById('modeSelect').value;
+    save();
+  }
+
+  function clearAll() {
+    if (!confirm('Remover todos os links?')) return;
+    links = [];
+    save();
+  }
+
+  function render() {
+    // Stats
+    document.getElementById('count').textContent = links.length;
+    const badge = document.getElementById('modeBadge');
+    if (mode === 'sequential') {
+      badge.textContent = '● sequencial';
+      badge.className = 'mode-tag mode-sequential';
+      document.getElementById('modeDisplay').textContent = 'SEQ';
+      const key = 'rotator_idx_/';
+      const idx = parseInt(localStorage.getItem(key) || '0');
+      document.getElementById('nextIdx').textContent = links.length ? idx % links.length : '—';
+    } else {
+      badge.textContent = '● aleatório';
+      badge.className = 'mode-tag mode-random';
+      document.getElementById('modeDisplay').textContent = 'RND';
+      document.getElementById('nextIdx').textContent = '?';
+    }
+
+    // List
+    const el = document.getElementById('list');
+    if (!links.length) {
+      el.innerHTML = '<div class="empty">Nenhum link ainda. Adicione acima ↑</div>';
+      return;
+    }
+    el.innerHTML = links.map((l, i) => `
+      <div class="link-item">
+        <span class="link-num">${i + 1}</span>
+        <span class="link-url" title="${l.url}">${l.url}</span>
+        ${l.alias ? `<span class="link-alias">${l.alias}</span>` : ''}
+        <button class="btn btn-danger" onclick="removeLink(${i})" title="Remover">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function updateOutput() {
+    if (!links.length) {
+      document.getElementById('output').value = '// Adicione links acima para gerar o código';
+      return;
+    }
+    const arr = JSON.stringify(links.map(l => l.url), null, 6)
+      .replace(/\n/g, '\n    ');
+    const code = `    const LINKS = ${arr};\n\n    const MODE = "${mode}"; // "sequential" ou "random"`;
+    document.getElementById('output').value = code;
+  }
+
+  function copyCode() {
+    const ta = document.getElementById('output');
+    navigator.clipboard.writeText(ta.value).then(() => showToast('Código copiado! ✓'));
+  }
+
+  function downloadIndex() {
+    if (!links.length) return showToast('Adicione links primeiro!');
+    const arr = links.map(l => `      "${l.url}"`).join(',\n');
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecionando...</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0a0a0a;color:#fff;font-family:'Courier New',monospace;
+         display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .container{text-align:center;animation:fadeIn .4s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .spinner{width:40px;height:40px;border:3px solid #333;border-top-color:#00ff88;
+             border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 20px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    p{color:#666;font-size:13px} span{color:#00ff88}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <p>Redirecionando para <span id="dest">...</span></p>
+  </div>
+  <script>
+    const LINKS = [
+${arr}
+    ];
+    const MODE = "${mode}";
+
+    function getNextIndex() {
+      if (MODE === "random") return Math.floor(Math.random() * LINKS.length);
+      const key = "rotator_idx_" + location.pathname;
+      let idx = parseInt(localStorage.getItem(key) || "0", 10);
+      localStorage.setItem(key, (idx + 1) % LINKS.length);
+      return idx;
+    }
+    const idx = getNextIndex();
+    const dest = LINKS[idx];
+    document.getElementById("dest").textContent = new URL(dest).hostname;
+    setTimeout(() => { window.location.href = dest; }, 600);
+  <\/script>
+</body>
+</html>`;
+    const blob = new Blob([html], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'index.html';
+    a.click();
+    showToast('index.html baixado! ✓');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // Permitir Enter no input
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addLink();
+  });
+
+  save(); // Render inicial
+</script>
+</body>
+</html>

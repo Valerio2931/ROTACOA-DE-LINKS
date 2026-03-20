@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecionando...</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top-color: #00ff88;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    p { color: #666; font-size: 13px; }
+    span { color: #00ff88; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <p>Redirecionando para <span id="dest">...</span></p>
+  </div>
+
+  <script>
+    // ============================================================
+    //  CONFIGURAÇÃO — edite apenas este bloco
+    // ============================================================
+    const LINKS = [
+      "https://www.google.com",
+      "https://www.youtube.com",
+      "https://www.github.com",
+      "https://www.twitter.com",
+      "https://www.instagram.com",
+      "https://www.reddit.com",
+      "https://www.amazon.com.br",
+      "https://www.netflix.com",
+      "https://www.mercadolivre.com.br",
+      "https://www.shopee.com.br"
+    ];
+
+    const MODE = "sequential"; // "sequential" ou "random"
+    // ============================================================
+
+    function getNextIndex() {
+      if (MODE === "random") {
+        return Math.floor(Math.random() * LINKS.length);
+      }
+      // Sequencial: salva o índice no localStorage
+      const key = "rotator_idx_" + location.pathname;
+      let idx = parseInt(localStorage.getItem(key) || "0", 10);
+      localStorage.setItem(key, (idx + 1) % LINKS.length);
+      return idx;
+    }
+
+    const idx = getNextIndex();
+    const dest = LINKS[idx];
+
+    document.getElementById("dest").textContent =
+      new URL(dest).hostname;
+
+    setTimeout(() => {
+      window.location.href = dest;
+    }, 600);
+  </script>
+</body>
+</html>
